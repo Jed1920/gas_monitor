@@ -20,29 +20,14 @@ public class S3BucketFetcher {
 
         System.out.format("Downloading %s from S3 bucket %s...\n", key_name, bucket_name);
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
-        try {
-            S3Object o = s3.getObject(bucket_name, key_name);
-            S3ObjectInputStream s3is = o.getObjectContent();
-            FileOutputStream fos = new FileOutputStream(new File(key_name));
-            byte[] read_buf = new byte[1024];
-            int read_len = 0;
-            while ((read_len = s3is.read(read_buf)) > 0) {
-                fos.write(read_buf, 0, read_len);
-            }
-            s3is.close();
-            fos.close();
-        } catch (
-                AmazonServiceException e) {
-            System.err.println(e.getErrorMessage());
-            System.exit(1);
-        } catch (
-                FileNotFoundException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        } catch (
-                IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }
+
+        S3Object s3Object = s3.getObject(bucket_name, key_name);
+        S3ObjectInputStream inputStream = s3Object.getObjectContent();
+
+        ObjectMapper mapper = new ObjectMapper();
+        MonitorLocation[] locations = mapper.readValue(inputStream, MonitorLocation[].class);
+        LOGGER.info(String.format("Received %d locations from S3 Bucket...\n", locations.length));
+
+        return locations;
     }
 }
