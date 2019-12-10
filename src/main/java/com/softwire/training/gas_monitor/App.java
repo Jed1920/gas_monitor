@@ -2,25 +2,17 @@ package com.softwire.training.gas_monitor;
 
 
 import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
-import com.amazonaws.services.sns.model.SubscribeRequest;
-import com.amazonaws.services.sns.model.UnsubscribeRequest;
-import com.amazonaws.services.sns.model.UnsubscribeResult;
 import com.amazonaws.services.sns.util.Topics;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
-import com.amazonaws.services.sqs.model.DeleteQueueRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 /**
