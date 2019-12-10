@@ -1,24 +1,26 @@
 package com.softwire.training.gas_monitor;
 
-import com.amazonaws.AmazonServiceException;
+
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class S3BucketFetcher {
 
-    public void S3BucketFetcher() {
+    private static final Logger LOGGER = LogManager.getLogger(S3BucketFetcher.class);
+
+    public MonitorLocation[] fileFetcher() throws IOException {
         String bucket_name = "eventprocessing-locationss3bucket-7mbrb9iiisk4";
         String key_name = "locations.json";
 
-        System.out.format("Downloading %s from S3 bucket %s...\n", key_name, bucket_name);
+        LOGGER.info(String.format("Downloading %s from S3 bucket %s...\n", key_name, bucket_name));
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
 
         S3Object s3Object = s3.getObject(bucket_name, key_name);
