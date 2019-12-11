@@ -1,14 +1,15 @@
 package com.softwire.training.gas_monitor;
 
 import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sns.util.Topics;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
+import com.softwire.training.gas_monitor.Models.MonitorLocation;
+import com.softwire.training.gas_monitor.Models.SensorReading;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MessageReceiver {
@@ -25,9 +26,10 @@ public class MessageReceiver {
         this.sensorReadingFetcher = sensorReadingFetcher;
     }
 
-    public void run() throws Exception {
+    public List<SensorReading> run() throws Exception {
         String myQueueUrl = sqs.createQueue(new CreateQueueRequest("jedQueue1")).getQueueUrl();
         String subscriptionArn = null;
+        List<SensorReading> readings = new ArrayList<>();
 
         try {
             subscriptionArn = Topics.subscribeQueue(sns, sqs, TOPIC_ARN, myQueueUrl);
@@ -36,8 +38,7 @@ public class MessageReceiver {
             long endTime = currentTime + 15000;
 
             while (System.currentTimeMillis() < endTime) {
-                List<SensorReading> readings = sensorReadingFetcher.fetchReadings(myQueueUrl);
-
+                readings = sensorReadingFetcher.fetchReadings(myQueueUrl);
             }
         } finally {
             sqs.deleteQueue(myQueueUrl);
@@ -48,5 +49,6 @@ public class MessageReceiver {
                 LOGGER.info(String.format("Unsubscribed from topic %s", subscriptionArn));
             }
         }
+        return readings;
     }
 }

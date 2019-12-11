@@ -1,4 +1,4 @@
-package com.softwire.training.gas_monitor;
+package com.softwire.training.gas_monitor.Models;
 
 import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

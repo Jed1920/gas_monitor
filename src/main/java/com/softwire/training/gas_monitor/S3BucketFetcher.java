@@ -1,12 +1,11 @@
 package com.softwire.training.gas_monitor;
 
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.softwire.training.gas_monitor.Models.MonitorLocation;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 

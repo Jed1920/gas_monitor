@@ -1,4 +1,4 @@
-package com.softwire.training.gas_monitor;
+package com.softwire.training.gas_monitor.Models;
 
 public class MonitorLocation {
     private String id;
