@@ -1,5 +1,6 @@
 package com.softwire.training.gas_monitor;
 
+import com.amazonaws.services.sqs.model.Message;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +18,7 @@ public class SnsMessage {
     private String timeStamp;
 
     @JsonProperty("Message")
-    private BodyMessage message;
+    private SensorReading message;
 
     public String getMessageId() {
         return messageId;
@@ -35,16 +36,20 @@ public class SnsMessage {
         this.timeStamp = timeStamp;
     }
 
-    public BodyMessage getMessage() {
+    public SensorReading getMessage() {
         return message;
     }
 
     public void setMessage(String message) {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            this.message = mapper.readValue(message, BodyMessage.class);
+            this.message = mapper.readValue(message, SensorReading.class);
         } catch (Exception e) {
             LOGGER.error(e);
         }
+    }
+
+    public static SnsMessage fromSqsMessage(Message message) throws Exception {
+        return (new ObjectMapper()).readValue(message.getBody(), SnsMessage.class);
     }
 }

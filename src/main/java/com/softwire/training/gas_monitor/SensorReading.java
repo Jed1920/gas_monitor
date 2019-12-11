@@ -3,8 +3,7 @@ package com.softwire.training.gas_monitor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BodyMessage {
-
+public class SensorReading {
     private String locationId;
     private String eventId;
     private String value;

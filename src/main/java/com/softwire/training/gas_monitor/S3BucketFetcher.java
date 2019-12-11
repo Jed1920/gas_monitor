@@ -14,6 +14,12 @@ import java.io.IOException;
 
 public class S3BucketFetcher {
 
+    private final AmazonS3 s3Client;
+
+    public S3BucketFetcher(AmazonS3 s3Client) {
+        this.s3Client = s3Client;
+    }
+
     private static final Logger LOGGER = LogManager.getLogger(S3BucketFetcher.class);
 
     public MonitorLocation[] fileFetcher() throws IOException {
@@ -21,9 +27,8 @@ public class S3BucketFetcher {
         String key_name = "locations.json";
 
         LOGGER.info(String.format("Downloading %s from S3 bucket %s...\n", key_name, bucket_name));
-        final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
 
-        S3Object s3Object = s3.getObject(bucket_name, key_name);
+        S3Object s3Object = s3Client.getObject(bucket_name, key_name);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
 
         ObjectMapper mapper = new ObjectMapper();
