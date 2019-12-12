@@ -1,16 +1,21 @@
 package com.softwire.training.gas_monitor;
 
 import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.amazonaws.services.sns.util.Topics;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.softwire.training.gas_monitor.Models.MonitorLocation;
 import com.softwire.training.gas_monitor.Models.SensorReading;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MessageReceiver {
     private static final Logger LOGGER = LogManager.getLogger(MessageReceiver.class);
@@ -19,17 +24,21 @@ public class MessageReceiver {
     private final AmazonSQS sqs;
     private final AmazonSNS sns;
     private final SensorReadingFetcher sensorReadingFetcher;
+    private final S3BucketFetcher s3BucketFetcher;
 
-    public MessageReceiver(AmazonSQS sqs, AmazonSNS sns, SensorReadingFetcher sensorReadingFetcher) throws Exception {
-        this.sqs = sqs;
-        this.sns = sns;
+    public MessageReceiver(AmazonSQS sqsClient, AmazonSNS snsClient, SensorReadingFetcher sensorReadingFetcher, S3BucketFetcher s3BucketFetcher) throws Exception {
+        this.sqs = sqsClient;
+        this.sns = snsClient;
         this.sensorReadingFetcher = sensorReadingFetcher;
+        this.s3BucketFetcher = s3BucketFetcher;
     }
 
-    public List<SensorReading> run() throws Exception {
-        String myQueueUrl = sqs.createQueue(new CreateQueueRequest("jedQueue1")).getQueueUrl();
+    public List<SensorReading> getListofSensorReadings() throws Exception {
+        String myQueueUrl = sqs.createQueue(new CreateQueueRequest("jedQueue2")).getQueueUrl();
         String subscriptionArn = null;
-        List<SensorReading> readings = new ArrayList<>();
+        List<SensorReading> matchedReadings = new ArrayList<>();
+
+        List<String> validLocationIds = fetchImportantLocationIds();
 
         try {
             subscriptionArn = Topics.subscribeQueue(sns, sqs, TOPIC_ARN, myQueueUrl);
@@ -38,7 +47,7 @@ public class MessageReceiver {
             long endTime = currentTime + 15000;
 
             while (System.currentTimeMillis() < endTime) {
-                readings = sensorReadingFetcher.fetchReadings(myQueueUrl);
+                matchedReadings.addAll(sensorReadingFetcher.fetchReadings(myQueueUrl,validLocationIds));
             }
         } finally {
             sqs.deleteQueue(myQueueUrl);
@@ -49,6 +58,14 @@ public class MessageReceiver {
                 LOGGER.info(String.format("Unsubscribed from topic %s", subscriptionArn));
             }
         }
-        return readings;
+        return matchedReadings;
     }
+
+    public List<String> fetchImportantLocationIds() throws IOException {
+        MonitorLocation[] locations = s3BucketFetcher.fileFetcher();
+        return Arrays.stream(locations)
+                .map(location -> location.getId())
+                .collect(Collectors.toList());
+    }
+
 }

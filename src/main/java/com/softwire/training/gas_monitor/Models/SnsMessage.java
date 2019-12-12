@@ -41,15 +41,10 @@ public class SnsMessage {
     }
 
     public void setMessage(String message) {
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            this.message = mapper.readValue(message, SensorReading.class);
+            this.message = (new ObjectMapper()).readValue(message, SensorReading.class);
         } catch (Exception e) {
             LOGGER.error(e);
         }
-    }
-
-    public static SnsMessage fromSqsMessage(Message message) throws Exception {
-        return (new ObjectMapper()).readValue(message.getBody(), SnsMessage.class);
     }
 }

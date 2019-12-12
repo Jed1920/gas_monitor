@@ -1,7 +1,9 @@
 package com.softwire.training.gas_monitor;
 
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +18,7 @@ public class S3BucketFetcher {
     private final AmazonS3 s3Client;
 
     public S3BucketFetcher(AmazonS3 s3Client) {
-        this.s3Client = s3Client;
+        this.s3Client = s3Client;;
     }
 
     private static final Logger LOGGER = LogManager.getLogger(S3BucketFetcher.class);
