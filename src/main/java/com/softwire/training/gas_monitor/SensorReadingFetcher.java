@@ -7,6 +7,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.softwire.training.gas_monitor.Models.MonitorLocation;
 import com.softwire.training.gas_monitor.Models.SensorReading;
@@ -32,6 +33,7 @@ public class SensorReadingFetcher {
 
         List<Message> messages = receiveMessagesFromQueue(myQueueUrl);
         List<SensorReading> matchedReadings = new ArrayList<>();
+        List<String>readingEventIds = new ArrayList<>();
 
         LOGGER.info(String.format("    Received %d messages", messages.size()));
 
@@ -40,8 +42,9 @@ public class SensorReadingFetcher {
             SensorReading reading = snsMessage.getMessage();
             LOGGER.info(message.getBody());
 
-            if (validLocationIds.contains(reading.getLocationId())) {
+            if (validLocationIds.contains(reading.getLocationId()) && !readingEventIds.contains(reading.getEventId())) {
                 matchedReadings.add(reading);
+                readingEventIds.add(reading.getEventId());
             }
             deleteMessage(message, myQueueUrl, snsMessage);
         }
@@ -53,10 +56,11 @@ public class SensorReadingFetcher {
         ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(myQueueUrl)
                 .withWaitTimeSeconds(5)
                 .withMaxNumberOfMessages(10);
-        return sqs.receiveMessage(receiveMessageRequest).getMessages();
+        ReceiveMessageResult result = sqs.receiveMessage(receiveMessageRequest);
+        return result.getMessages();
     }
 
-    private void deleteMessage(Message message,String myQueueUrl,SnsMessage snsMessage){
+    public void deleteMessage(Message message,String myQueueUrl,SnsMessage snsMessage){
         String messageReceiptHandle = message.getReceiptHandle();
         sqs.deleteMessage(new DeleteMessageRequest(myQueueUrl, messageReceiptHandle));
         LOGGER.info("   Deleted message:    " + snsMessage.getMessageId());
