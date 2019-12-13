@@ -12,6 +12,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,29 +25,28 @@ public class MessageReceiver {
     private final AmazonSQS sqs;
     private final AmazonSNS sns;
     private final SensorReadingFetcher sensorReadingFetcher;
-    private final S3BucketFetcher s3BucketFetcher;
 
-    public MessageReceiver(AmazonSQS sqsClient, AmazonSNS snsClient, SensorReadingFetcher sensorReadingFetcher, S3BucketFetcher s3BucketFetcher) throws Exception {
+    public MessageReceiver(AmazonSQS sqsClient, AmazonSNS snsClient, SensorReadingFetcher sensorReadingFetcher) throws Exception {
         this.sqs = sqsClient;
         this.sns = snsClient;
         this.sensorReadingFetcher = sensorReadingFetcher;
-        this.s3BucketFetcher = s3BucketFetcher;
     }
 
-    public List<SensorReading> getListofSensorReadings() throws Exception {
-        String myQueueUrl = sqs.createQueue(new CreateQueueRequest("jedQueue2")).getQueueUrl();
+    public List<SensorReading> getListofSensorReadings(String myQueueUrl, List<String> validLocationIds) throws Exception {
+
         String subscriptionArn = null;
         List<SensorReading> matchedReadings = new ArrayList<>();
 
-        List<String> validLocationIds = fetchImportantLocationIds();
+
+        LOGGER.info(validLocationIds);
 
         try {
             subscriptionArn = Topics.subscribeQueue(sns, sqs, TOPIC_ARN, myQueueUrl);
 
-            long currentTime = System.currentTimeMillis();
+            long currentTime = Clock.systemDefaultZone().millis();
             long endTime = currentTime + 15000;
 
-            while (System.currentTimeMillis() < endTime) {
+            while (Clock.systemDefaultZone().millis() < endTime) {
                 matchedReadings.addAll(sensorReadingFetcher.fetchReadings(myQueueUrl,validLocationIds));
             }
         } finally {
@@ -61,11 +61,5 @@ public class MessageReceiver {
         return matchedReadings;
     }
 
-    public List<String> fetchImportantLocationIds() throws IOException {
-        MonitorLocation[] locations = s3BucketFetcher.fileFetcher();
-        return Arrays.stream(locations)
-                .map(location -> location.getId())
-                .collect(Collectors.toList());
-    }
 
 }

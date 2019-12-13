@@ -7,7 +7,7 @@ public class SensorReading {
     private String locationId;
     private String eventId;
     private String value;
-    private String timestamp;
+    private Long timestamp;
 
     public String getLocationId() {
         return locationId;
@@ -33,11 +33,11 @@ public class SensorReading {
         this.value = value;
     }
 
-    public String getTimestamp() {
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 }
